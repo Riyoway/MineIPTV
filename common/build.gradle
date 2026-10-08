@@ -5,9 +5,7 @@ configurations {
 }
 sourceSets.main.resources.srcDir file('src/main/generated')
 dependencies {
-    // Common sources only need the API at compile time. Each loader module provides
-    // its matching Common Network runtime artifact, avoiding capability conflicts.
-    compileOnly "mysticdrew:common-networking-common:${project.common_network_version}"
+    // 1.21.1 NeoForge build uses NeoForge's native payload API in the loader module.
 }
 artifacts {
     commonJava sourceSets.main.java.sourceDirectories.singleFile
