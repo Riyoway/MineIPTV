@@ -11,7 +11,11 @@ public final class MineIptvNetwork {
     private MineIptvNetwork() {}
 
     public static void initialize() {
+        //? if >=26.1 {
         Network.registerPacket(TvControlPayload.TYPE, TvControlPayload.STREAM_CODEC, context -> {
+        //?} else {
+        /*Network.registerPacket(TvControlPayload.TYPE, TvControlPayload.class, TvControlPayload.STREAM_CODEC, context -> {
+        *///?}
             if (context.side() != Side.SERVER) return;
             ServerPlayer player = context.sender();
             TvControlPayload payload = context.message();
