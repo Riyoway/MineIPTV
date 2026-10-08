@@ -1,0 +1,12 @@
+{
+  "category.mineiptv.main": "MineIPTV",
+  "key.mineiptv.open": "MineIPTVを開く",
+  "item.mineiptv.tv_1x1": "テレビ 1x1",
+  "item.mineiptv.tv_2x1": "テレビ 2x1",
+  "item.mineiptv.tv_2x2": "テレビ 2x2",
+  "item.mineiptv.tv_3x2": "テレビ 3x2",
+  "item.mineiptv.tv_4x3": "テレビ 4x3",
+  "block.mineiptv.television": "MineIPTV テレビ",
+  "block.mineiptv.tv_panel": "MineIPTV テレビパネル",
+  "key.category.mineiptv.main": "MineIPTV"
+}

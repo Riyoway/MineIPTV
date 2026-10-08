@@ -1,0 +1,13 @@
+plugins { id 'multiloader-common' }
+configurations {
+    commonJava { canBeResolved = false; canBeConsumed = true }
+    commonResources { canBeResolved = false; canBeConsumed = true }
+}
+sourceSets.main.resources.srcDir file('src/main/generated')
+dependencies {
+    implementation "mysticdrew:common-networking-common:${project.common_network_version}"
+}
+artifacts {
+    commonJava sourceSets.main.java.sourceDirectories.singleFile
+    commonResources sourceSets.main.resources.sourceDirectories.files
+}

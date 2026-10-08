@@ -1,21 +1,18 @@
 @echo off
 setlocal
-set GRADLE_VERSION=9.6.0
-set ROOT=%~dp0
-set CACHE=%ROOT%.gradle-bin
-set DIST=%CACHE%\gradle-%GRADLE_VERSION%
-
-where java >nul 2>nul || (
-  echo Java 25 is required.
-  exit /b 1
+cd /d "%~dp0"
+set TARGET=%~1
+if "%TARGET%"=="" set TARGET=all
+if /I "%TARGET%"=="all" (
+  powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0gradle-bootstrap.ps1" :fabric:build :neoforge:build :forge:build --no-daemon
+) else if /I "%TARGET%"=="fabric" (
+  powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0gradle-bootstrap.ps1" :fabric:build --no-daemon
+) else if /I "%TARGET%"=="neoforge" (
+  powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0gradle-bootstrap.ps1" :neoforge:build --no-daemon
+) else if /I "%TARGET%"=="forge" (
+  powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0gradle-bootstrap.ps1" :forge:build --no-daemon
+) else (
+  echo Usage: build.bat [all^|fabric^|neoforge^|forge]
+  exit /b 2
 )
-
-if not exist "%DIST%\bin\gradle.bat" (
-  echo Downloading Gradle %GRADLE_VERSION%...
-  if not exist "%CACHE%" mkdir "%CACHE%"
-  powershell -NoProfile -ExecutionPolicy Bypass -Command "$ProgressPreference='SilentlyContinue'; Invoke-WebRequest 'https://services.gradle.org/distributions/gradle-%GRADLE_VERSION%-bin.zip' -OutFile '%CACHE%\gradle.zip'; Expand-Archive -Force '%CACHE%\gradle.zip' '%CACHE%'"
-  if errorlevel 1 exit /b 1
-)
-
-call "%DIST%\bin\gradle.bat" build
-endlocal
+exit /b %ERRORLEVEL%

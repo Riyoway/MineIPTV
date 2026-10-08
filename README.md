@@ -1,75 +1,87 @@
 # MineIPTV
 
-A client-side Fabric mod that plays IPTV/HLS streams inside Minecraft.
+Minecraft television / IPTV mod. This development branch is structured as a **multi-loader + multiplayer** mod.
 
-## Target
+## Current cross-loader target
 
-- Minecraft Java Edition 26.3
-- Fabric Loader 0.19.5+
-- Fabric API 0.162.0+26.3
+- Minecraft **26.3**
+- Fabric Loader + Fabric API
+- NeoForge
+- Minecraft Forge
 - Java 25
-- FFmpeg available on PATH, or a custom `ffmpeg.exe` path entered in the player
+- Common Network 26.3-1.1.1 (required on both client and server)
 
-## Features
+Each loader produces its own jar. They share the same `common/` game logic and packet format.
 
-- Press `I` to open MineIPTV
-- Load remote or local M3U playlists
-- Direct HLS/M3U8/HTTP stream playback
-- Previous / next channel switching
-- Audio playback and volume control
-- Remembers playlist URL, FFmpeg path, and volume
-- No IPTV provider or bundled channel list
+## Multiplayer design
 
-## FFmpeg on Windows
+The dedicated server **does not decode or relay video**. It only owns/saves/synchronizes the television state:
 
-Install FFmpeg, for example:
+- master TV block position
+- channel name
+- HTTP/HTTPS stream URL
+- playing/stopped state
+- state revision
+- TV owner (the player who placed it)
 
-```powershell
-winget install Gyan.FFmpeg
-```
+When a player changes a TV, a validated serverbound payload updates the TV block entity. Vanilla block-entity update packets then synchronize that state to tracking clients. Each client decodes the stream locally with FFmpeg. This prevents IPTV traffic from passing through the Minecraft server.
 
-Restart Minecraft after installing it so the updated PATH is visible.
+### Server requirements
 
-If FFmpeg is not on PATH, paste the full path to `ffmpeg.exe` in MineIPTV's FFmpeg field.
+- MineIPTV jar for the server's loader
+- Common Network jar for the same loader/version
+- **FFmpeg is not required on the server**
+
+### Client requirements
+
+- MineIPTV jar matching the client's loader/version
+- Common Network jar
+- FFmpeg available as `ffmpeg` on PATH, or configured in MineIPTV
+
+## TV gameplay
+
+TVs are real multi-block structures. Sizes:
+
+`1x1 -> 2x1 -> 2x2 -> 3x2 -> 4x3`
+
+All crafting uses vanilla Minecraft items. Upgrade recipes consume the previous MineIPTV TV plus vanilla materials. Right-click any panel to control the master TV. Breaking a panel removes the complete structure and returns one correctly-sized TV item.
+
+## Multiplayer safety
+
+Serverbound TV changes are validated server-side:
+
+- only the player who placed the TV can change its channel/state
+- player must be within 8 blocks of the TV
+- target must be a MineIPTV TV block entity
+- synchronized streams must be HTTP or HTTPS
+- URLs containing embedded credentials are rejected
+- URL and channel-name lengths are capped
+
+Local standalone playback may still use local paths; only server-synchronized TV streams are restricted.
 
 ## Build
 
-On Windows, double-click `build.bat` or run:
+On Windows, the included bootstrap downloads a private Java 25 + Gradle 9.7.1 toolchain when needed:
 
-```bat
-build.bat
+```powershell
+.\build.bat all
+.\build.bat fabric
+.\build.bat neoforge
+.\build.bat forge
 ```
 
-The script downloads Gradle 9.6.0 locally on first use, then builds the mod. The jar is written under `build/libs/`.
+If Java 25 and Gradle 9.7.1 are already installed, you can also run:
 
-For development:
-
-```bat
-run-client.bat
+```powershell
+gradle :fabric:build
+gradle :neoforge:build
+gradle :forge:build
 ```
 
-## Usage
+Artifacts are generated in each loader module's `build/libs/` directory.
 
-1. Start Minecraft with Fabric + Fabric API + MineIPTV.
-2. Join/open a world.
-3. Press `I`.
-4. Paste an M3U playlist URL/path and click **Load M3U**, or paste a direct stream URL and click **Play URL**.
-5. Use Prev/Next and Play to switch channels.
+## Version coverage
 
-### Local playlist
+The previous Fabric/Stonecutter branch contains the 1.21 -> 26.3 source adaptations. This cross-loader branch starts at 26.3 so the multiplayer/networking architecture can be debugged on one Minecraft version before backporting it. See `TARGETS.md` for the planned cross-loader baselines.
 
-You can enter a normal Windows path, for example:
-
-```text
-D:\\IPTV\\channels.m3u
-```
-
-or a `file:///...` URI.
-
-## Notes
-
-MineIPTV uses one FFmpeg process. Video is emitted as fixed 512x288 RGBA frames over stdout, while 48 kHz stereo PCM audio is emitted over stderr. FFmpeg logging is disabled while streaming so the audio pipe remains clean.
-
-The current version is intentionally an MVP player UI. A later version can render the same dynamic texture onto an in-world TV block / multi-block screen.
-
-Only use streams and playlists you are authorized to access.
+This is still a **development build**, not a release/tag candidate.

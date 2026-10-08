@@ -1,9 +1,10 @@
 pluginManagement {
     repositories {
         maven { name = 'Fabric'; url = 'https://maven.fabricmc.net/' }
-        mavenCentral()
+        maven { name = 'RelativityMC'; url = 'https://repo.codemc.io/repository/relativitymc/' }
         gradlePluginPortal()
+        mavenCentral()
     }
 }
-
 rootProject.name = 'MineIPTV'
+include('common', 'fabric', 'neoforge', 'forge')

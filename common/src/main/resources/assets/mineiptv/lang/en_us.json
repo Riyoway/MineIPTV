@@ -1,0 +1,12 @@
+{
+  "category.mineiptv.main": "MineIPTV",
+  "key.mineiptv.open": "Open MineIPTV",
+  "item.mineiptv.tv_1x1": "Television 1x1",
+  "item.mineiptv.tv_2x1": "Television 2x1",
+  "item.mineiptv.tv_2x2": "Television 2x2",
+  "item.mineiptv.tv_3x2": "Television 3x2",
+  "item.mineiptv.tv_4x3": "Television 4x3",
+  "block.mineiptv.television": "MineIPTV Television",
+  "block.mineiptv.tv_panel": "MineIPTV TV Panel",
+  "key.category.mineiptv.main": "MineIPTV"
+}

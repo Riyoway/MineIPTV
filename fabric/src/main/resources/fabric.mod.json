@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": ["${mod_author}"],
+  "contact": {"homepage":"${mod_homepage}","sources":"${mod_github}","issues":"${mod_github}/issues"},
+  "license": "${mod_license}",
+  "icon": "${mod_icon}",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["me.riyo.mineiptv.fabric.MineIptvFabric"],
+    "client": ["me.riyo.mineiptv.fabric.MineIptvFabricClient"]
+  },
+  "depends": {
+    "java": ">=${java_version}",
+    "minecraft": "${minecraft_version}",
+    "fabricloader": ">=${fabric_loader_version}",
+    "fabric-api": "*",
+    "commonnetworking": ">=${common_network_version}"
+  }
+}

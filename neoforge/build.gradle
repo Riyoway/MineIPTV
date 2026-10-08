@@ -1,0 +1,9 @@
+plugins { id 'multiloader-loader' }
+repositories {
+    maven { name='NeoForge'; url='https://maven.neoforged.net/releases/' }
+    maven { url='https://maven.blamejared.com' }
+}
+dependencies {
+    forgeUserdev "net.neoforged:neoforge:${project.neoforge_version}:userdev"
+    implementation "mysticdrew:common-networking-neoforge:${project.common_network_version}"
+}
