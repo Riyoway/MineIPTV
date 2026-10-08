@@ -10,10 +10,13 @@ import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 //? if >=26.1 {
 import net.minecraft.client.renderer.state.level.CameraRenderState;
+//?} else {
+/*import net.minecraft.client.renderer.state.CameraRenderState;
+*///?}
+//? if >=1.21.11 {
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 //?} else {
 /*import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.state.CameraRenderState;
 *///?}
 //?} else {
 /*import net.minecraft.client.renderer.MultiBufferSource;
@@ -59,7 +62,7 @@ public final class TelevisionRenderer implements BlockEntityRenderer<TelevisionB
     public void submit(State state, PoseStack poses, SubmitNodeCollector collector, CameraRenderState cameraState) {
         if (!state.active) return;
         TvPlaybackManager.player().uploadLatestFrame();
-        //? if >=26.1 {
+        //? if >=1.21.11 {
         collector.submitCustomGeometry(poses, RenderTypes.entityTranslucent(TvPlaybackManager.player().textureId()),
                 (pose, consumer) -> quad(pose, consumer, state.facing, state.width, state.height));
         //?} else {
@@ -69,11 +72,18 @@ public final class TelevisionRenderer implements BlockEntityRenderer<TelevisionB
     }
 //?} else {
 /*public final class TelevisionRenderer implements BlockEntityRenderer<TelevisionBlockEntity> {
+    private static final int FULL_BRIGHT = 0x00F000F0;
+
     public TelevisionRenderer(BlockEntityRendererProvider.Context context) {}
 
     @Override
+    //? if >=1.21.5 {
     public void render(TelevisionBlockEntity blockEntity, float tickDelta, PoseStack poses,
+                       MultiBufferSource buffers, int light, int overlay, Vec3 cameraPos) {
+    //?} else {
+    /*public void render(TelevisionBlockEntity blockEntity, float tickDelta, PoseStack poses,
                        MultiBufferSource buffers, int light, int overlay) {
+    *///?}
         if (!TvPlaybackManager.isActive(blockEntity.getBlockPos())) return;
         TvPlaybackManager.player().uploadLatestFrame();
         var state = blockEntity.getBlockState();
