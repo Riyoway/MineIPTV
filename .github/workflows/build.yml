@@ -24,6 +24,22 @@ jobs:
           test -n "$JAR"
           unzip -t "$JAR"
           python3 .github/scripts/validate_neoforge_1211_jar.py "$JAR"
+      - name: Dedicated server smoke test
+        shell: bash
+        run: |
+          mkdir -p neoforge/runs/server
+          printf 'eula=true\n' > neoforge/runs/server/eula.txt
+          printf 'online-mode=false\n' > neoforge/runs/server/server.properties
+          set +e
+          timeout 120s gradle :neoforge:runServer --no-daemon --console=plain > server-smoke.log 2>&1
+          code=$?
+          set -e
+          cat server-smoke.log
+          if grep -Eq 'Done \([0-9.]+s\)!|For help, type' server-smoke.log; then
+            exit 0
+          fi
+          echo "Dedicated server did not reach ready state (exit=$code)"
+          exit 1
       - uses: actions/upload-artifact@v4
         with:
           name: mineiptv-neoforge-1.21.1
