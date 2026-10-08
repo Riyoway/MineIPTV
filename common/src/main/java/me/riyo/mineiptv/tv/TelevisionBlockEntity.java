@@ -9,8 +9,10 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+//? if >=1.21.6 {
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+//?}
 
 import java.util.UUID;
 
@@ -64,6 +66,7 @@ public final class TelevisionBlockEntity extends BlockEntity {
         }
     }
 
+    //? if >=1.21.6 {
     @Override
     protected void saveAdditional(ValueOutput output) {
         output.putString("ChannelName", channelName);
@@ -82,8 +85,42 @@ public final class TelevisionBlockEntity extends BlockEntity {
         playing = input.getBooleanOr("Playing", false);
         revision = input.getLongOr("Revision", 0L);
         String ownerText = input.getStringOr("Owner", "");
+        readOwner(ownerText);
+    }
+    //?} else {
+    /*@Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        tag.putString("ChannelName", channelName);
+        tag.putString("StreamUrl", streamUrl);
+        tag.putBoolean("Playing", playing);
+        tag.putLong("Revision", revision);
+        if (owner != null) tag.putString("Owner", owner.toString());
+        super.saveAdditional(tag, registries);
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        //? if >=1.21.5 {
+        channelName = tag.getStringOr("ChannelName", "");
+        streamUrl = tag.getStringOr("StreamUrl", "");
+        playing = tag.getBooleanOr("Playing", false);
+        revision = tag.getLongOr("Revision", 0L);
+        String ownerText = tag.getStringOr("Owner", "");
+        //?} else {
+        /*channelName = tag.getString("ChannelName");
+        streamUrl = tag.getString("StreamUrl");
+        playing = tag.getBoolean("Playing");
+        revision = tag.getLong("Revision");
+        String ownerText = tag.getString("Owner");
+        *///?}
+        readOwner(ownerText);
+    }
+    *///?}
+
+    private void readOwner(String ownerText) {
         try {
-            owner = ownerText.isBlank() ? null : UUID.fromString(ownerText);
+            owner = ownerText == null || ownerText.isBlank() ? null : UUID.fromString(ownerText);
         } catch (IllegalArgumentException ignored) {
             owner = null;
         }
