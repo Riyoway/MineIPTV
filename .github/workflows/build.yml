@@ -15,8 +15,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.2.1'
+
       - name: Build NeoForge 1.21.1
         run: gradle :neoforge:build --stacktrace --no-daemon
+
       - name: Validate NeoForge JAR
         shell: bash
         run: |
@@ -24,22 +26,40 @@ jobs:
           test -n "$JAR"
           unzip -t "$JAR"
           python3 .github/scripts/validate_neoforge_1211_jar.py "$JAR"
-      - name: Dedicated server smoke test
+
+      - name: Packaged JAR dedicated-server smoke test
         shell: bash
         run: |
-          mkdir -p neoforge/runs/server
-          printf 'eula=true\n' > neoforge/runs/server/eula.txt
-          printf 'online-mode=false\n' > neoforge/runs/server/server.properties
+          ROOT="$PWD"
+          JAR=$(find neoforge/build/libs -maxdepth 1 -type f -name 'mineiptv-neoforge-*.jar' ! -name '*sources*' | head -n 1)
+          test -n "$JAR"
+          JAR="$ROOT/$JAR"
+
+          SERVER_DIR=$(mktemp -d)
+          cd "$SERVER_DIR"
+          curl --fail --location --retry 3 \
+            --output neoforge-installer.jar \
+            "https://maven.neoforged.net/releases/net/neoforged/neoforge/21.1.256/neoforge-21.1.256-installer.jar"
+          java -jar neoforge-installer.jar --installServer
+          mkdir -p mods
+          cp "$JAR" mods/
+          printf 'eula=true\n' > eula.txt
+          printf 'online-mode=false\n' > server.properties
+
           set +e
-          timeout 120s gradle :neoforge:runServer --no-daemon --console=plain > server-smoke.log 2>&1
+          timeout 120s ./run.sh --nogui > packaged-server.log 2>&1
           code=$?
           set -e
-          cat server-smoke.log
-          if grep -Eq 'Done \([0-9.]+s\)!|For help, type' server-smoke.log; then
-            exit 0
+          cat packaged-server.log
+
+          grep -Fq 'MineIPTV 0.2.0-dev+1.21.1 (mineiptv)' packaged-server.log
+          grep -Eq 'Done \([0-9.]+s\)!|For help, type' packaged-server.log
+          if grep -Eqi 'Failed to load|Invalid mod|not a valid mod|ModLoadingException|Exception in thread' packaged-server.log; then
+            echo 'Packaged server log contains a fatal mod-loading error.'
+            exit 1
           fi
-          echo "Dedicated server did not reach ready state (exit=$code)"
-          exit 1
+          echo "Packaged JAR loaded successfully (server exit=$code after timeout)."
+
       - uses: actions/upload-artifact@v4
         with:
           name: mineiptv-neoforge-1.21.1
