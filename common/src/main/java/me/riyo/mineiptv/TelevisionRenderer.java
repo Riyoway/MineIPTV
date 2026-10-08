@@ -76,14 +76,20 @@ public final class TelevisionRenderer implements BlockEntityRenderer<TelevisionB
 
     public TelevisionRenderer(BlockEntityRendererProvider.Context context) {}
 
-    @Override
-    //? if >=1.21.5 {
+    // Minecraft 1.21.5 added cameraPos to BlockEntityRenderer#render. Keeping
+    // both overloads is source-compatible with both sides of that boundary;
+    // the interface naturally selects the matching signature.
+    public void render(TelevisionBlockEntity blockEntity, float tickDelta, PoseStack poses,
+                       MultiBufferSource buffers, int light, int overlay) {
+        renderTv(blockEntity, poses, buffers);
+    }
+
     public void render(TelevisionBlockEntity blockEntity, float tickDelta, PoseStack poses,
                        MultiBufferSource buffers, int light, int overlay, Vec3 cameraPos) {
-    //?} else {
-    /*public void render(TelevisionBlockEntity blockEntity, float tickDelta, PoseStack poses,
-                       MultiBufferSource buffers, int light, int overlay) {
-    *///?}
+        renderTv(blockEntity, poses, buffers);
+    }
+
+    private void renderTv(TelevisionBlockEntity blockEntity, PoseStack poses, MultiBufferSource buffers) {
         if (!TvPlaybackManager.isActive(blockEntity.getBlockPos())) return;
         TvPlaybackManager.player().uploadLatestFrame();
         var state = blockEntity.getBlockState();
