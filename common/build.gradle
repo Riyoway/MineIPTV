@@ -5,7 +5,9 @@ configurations {
 }
 sourceSets.main.resources.srcDir file('src/main/generated')
 dependencies {
-    implementation "mysticdrew:common-networking-common:${project.common_network_version}"
+    // Common sources only need the API at compile time. Each loader module provides
+    // its matching Common Network runtime artifact, avoiding capability conflicts.
+    compileOnly "mysticdrew:common-networking-common:${project.common_network_version}"
 }
 artifacts {
     commonJava sourceSets.main.java.sourceDirectories.singleFile
