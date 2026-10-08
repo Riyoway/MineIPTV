@@ -1,5 +1,9 @@
 package me.riyo.mineiptv.tv;
 
+//? if >=26.1 {
+//?} else {
+/*import com.mojang.serialization.MapCodec;
+*///?}
 import me.riyo.mineiptv.ClientBridge;
 import org.jetbrains.annotations.Nullable;
 import net.minecraft.core.BlockPos;
@@ -21,12 +25,25 @@ public final class TelevisionBlock extends BaseEntityBlock {
     public static final IntegerProperty WIDTH = IntegerProperty.create("width", 1, 4);
     public static final IntegerProperty HEIGHT = IntegerProperty.create("height", 1, 3);
 
+    //? if >=26.1 {
+    //?} else {
+    /*public static final MapCodec<TelevisionBlock> CODEC = TelevisionBlock.simpleCodec(TelevisionBlock::new);
+    *///?}
+
     public TelevisionBlock(BlockBehaviour.Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any()
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH)
                 .setValue(WIDTH, 1).setValue(HEIGHT, 1));
     }
+
+    //? if >=26.1 {
+    //?} else {
+    /*@Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
+    *///?}
 
     @Override protected void createBlockStateDefinition(StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> b) {
         b.add(BlockStateProperties.HORIZONTAL_FACING, WIDTH, HEIGHT);
