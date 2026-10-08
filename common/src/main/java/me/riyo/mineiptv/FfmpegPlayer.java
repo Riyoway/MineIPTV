@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class FfmpegPlayer implements AutoCloseable {
@@ -27,6 +28,7 @@ public final class FfmpegPlayer implements AutoCloseable {
     private final ResourceLocation textureId = MineIptv.id("stream");
     private final AtomicReference<byte[]> latestFrame = new AtomicReference<>();
     private final AtomicBoolean running = new AtomicBoolean(false);
+    private final AtomicLong generation = new AtomicLong();
 
     private Process process;
     private Thread videoThread;
@@ -38,17 +40,9 @@ public final class FfmpegPlayer implements AutoCloseable {
         Minecraft.getInstance().getTextureManager().register(textureId, texture);
     }
 
-    public ResourceLocation textureId() {
-        return textureId;
-    }
-
-    public String status() {
-        return status;
-    }
-
-    public boolean isRunning() {
-        return running.get();
-    }
+    public ResourceLocation textureId() { return textureId; }
+    public String status() { return status; }
+    public boolean isRunning() { return running.get(); }
 
     public void setVolume(int volume) {
         this.volume = Math.max(0, Math.min(100, volume));
@@ -88,47 +82,62 @@ public final class FfmpegPlayer implements AutoCloseable {
         command.add("48000");
         command.add("pipe:2");
 
-        process = new ProcessBuilder(command).start();
+        final Process started;
+        try {
+            started = new ProcessBuilder(command).start();
+        } catch (IOException e) {
+            status = "FFmpeg start failed: " + shortMessage(e);
+            throw e;
+        }
+
+        final long session = generation.incrementAndGet();
+        process = started;
         running.set(true);
         status = "Buffering...";
 
-        videoThread = Thread.ofVirtual().name("MineIPTV-video").start(() -> videoLoop(process.getInputStream()));
-        audioThread = Thread.ofVirtual().name("MineIPTV-audio").start(() -> audioLoop(process.getErrorStream()));
+        videoThread = Thread.ofVirtual().name("MineIPTV-video").start(
+                () -> videoLoop(started.getInputStream(), session));
+        audioThread = Thread.ofVirtual().name("MineIPTV-audio").start(
+                () -> audioLoop(started.getErrorStream(), session));
     }
 
-    private void videoLoop(InputStream input) {
+    private boolean current(long session) {
+        return generation.get() == session;
+    }
+
+    private void videoLoop(InputStream input, long session) {
         try (BufferedInputStream in = new BufferedInputStream(input, FRAME_BYTES * 2)) {
-            while (running.get()) {
+            while (current(session) && !Thread.currentThread().isInterrupted()) {
                 byte[] frame = readExactly(in, FRAME_BYTES);
+                if (!current(session)) break;
                 latestFrame.set(frame);
                 status = "Playing";
             }
         } catch (EOFException ignored) {
-            if (running.get()) status = "Stream ended";
+            if (current(session)) status = "Stream ended";
         } catch (IOException e) {
-            if (running.get()) status = "Video error: " + shortMessage(e);
+            if (current(session)) status = "Video error: " + shortMessage(e);
         } finally {
-            running.set(false);
+            if (current(session)) running.set(false);
         }
     }
 
-    private void audioLoop(InputStream input) {
+    private void audioLoop(InputStream input, long session) {
         AudioFormat format = new AudioFormat(48_000f, 16, 2, true, false);
         DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
 
         try (BufferedInputStream in = new BufferedInputStream(input, 64 * 1024);
              SourceDataLine line = (SourceDataLine) AudioSystem.getLine(info)) {
-            line.open(format, 48_000 * 4 / 4);
+            line.open(format, 48_000);
             line.start();
             byte[] buffer = new byte[8192];
             int n;
-            while (running.get() && (n = in.read(buffer)) >= 0) {
+            while (current(session) && !Thread.currentThread().isInterrupted() && (n = in.read(buffer)) >= 0) {
                 applyVolume(buffer, n, volume / 100.0f);
                 line.write(buffer, 0, n);
             }
-            line.drain();
         } catch (Exception e) {
-            if (running.get()) status = "Audio unavailable: " + shortMessage(e);
+            if (current(session) && running.get()) status = "Audio unavailable: " + shortMessage(e);
         }
     }
 
@@ -154,12 +163,22 @@ public final class FfmpegPlayer implements AutoCloseable {
     }
 
     public synchronized void stop() {
+        generation.incrementAndGet();
         running.set(false);
         latestFrame.set(null);
-        if (process != null) {
-            process.destroy();
-            if (process.isAlive()) process.destroyForcibly();
-            process = null;
+
+        Thread oldVideo = videoThread;
+        Thread oldAudio = audioThread;
+        videoThread = null;
+        audioThread = null;
+        if (oldVideo != null) oldVideo.interrupt();
+        if (oldAudio != null) oldAudio.interrupt();
+
+        Process oldProcess = process;
+        process = null;
+        if (oldProcess != null) {
+            oldProcess.destroy();
+            if (oldProcess.isAlive()) oldProcess.destroyForcibly();
         }
         status = "Idle";
     }

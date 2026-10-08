@@ -25,6 +25,7 @@ public final class MineIptvNetwork {
 
         BlockPos pos = payload.pos();
         if (player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) > 64.0) return;
+        if (!player.level().hasChunkAt(pos)) return;
         if (!(player.level().getBlockEntity(pos) instanceof TelevisionBlockEntity television)) return;
         television.claimIfUnowned(player.getUUID());
         if (!television.canEdit(player.getUUID())) return;
@@ -38,6 +39,7 @@ public final class MineIptvNetwork {
     }
 
     public static void setTelevision(BlockPos pos, String channelName, String streamUrl, boolean playing) {
+        if (pos == null) return;
         clientSender.accept(new TvControlPayload(pos, channelName == null ? "" : channelName,
                 streamUrl == null ? "" : streamUrl, playing));
     }

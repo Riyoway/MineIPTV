@@ -12,7 +12,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -47,9 +46,6 @@ public final class MineIptvNeoForge {
         ITEMS.register(modBus);
         BLOCK_ENTITIES.register(modBus);
         modBus.addListener(this::registerPayloads);
-        if (FMLEnvironment.dist.isClient()) {
-            MineIptvNeoForgeClient.registerModEvents(modBus);
-        }
 
         Map<TvSize, Supplier<? extends Item>> items = new EnumMap<>(TvSize.class);
         TV_ITEMS.forEach(items::put);

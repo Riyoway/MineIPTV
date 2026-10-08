@@ -1,3 +1,1 @@
-plugins {
-    id 'org.relativitymc.neo-loom' version '1.18-SNAPSHOT' apply false
-}
+// NeoForge 1.21.1 is built by the neoforge subproject using the official ModDevGradle plugin.
