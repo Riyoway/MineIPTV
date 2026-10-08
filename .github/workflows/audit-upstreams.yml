@@ -1,0 +1,36 @@
+name: audit-upstreams
+
+on:
+  push:
+    branches:
+      - audit/all-loaders-all-versions
+    paths:
+      - 'compatibility/**'
+      - '.github/scripts/audit_upstream_toolchains.py'
+      - '.github/workflows/audit-upstreams.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  toolchains:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Audit exact official toolchains
+        run: python3 .github/scripts/audit_upstream_toolchains.py
+
+      - name: Upload observed upstream matrix
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: upstream-toolchain-audit
+          path: compatibility/upstream-audit.json
+          if-no-files-found: warn
