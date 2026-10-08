@@ -1,6 +1,5 @@
 package me.riyo.mineiptv.tv;
 
-import com.mojang.serialization.MapCodec;
 import me.riyo.mineiptv.ClientBridge;
 import org.jetbrains.annotations.Nullable;
 import net.minecraft.core.BlockPos;
@@ -19,7 +18,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 
 public final class TelevisionBlock extends BaseEntityBlock {
-    public static final MapCodec<TelevisionBlock> CODEC = simpleCodec(TelevisionBlock::new);
     public static final IntegerProperty WIDTH = IntegerProperty.create("width", 1, 4);
     public static final IntegerProperty HEIGHT = IntegerProperty.create("height", 1, 3);
 
@@ -30,7 +28,6 @@ public final class TelevisionBlock extends BaseEntityBlock {
                 .setValue(WIDTH, 1).setValue(HEIGHT, 1));
     }
 
-    @Override protected MapCodec<? extends BaseEntityBlock> codec() { return CODEC; }
     @Override protected void createBlockStateDefinition(StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> b) {
         b.add(BlockStateProperties.HORIZONTAL_FACING, WIDTH, HEIGHT);
     }

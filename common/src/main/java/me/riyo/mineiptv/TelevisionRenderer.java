@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import me.riyo.mineiptv.tv.TelevisionBlock;
 import me.riyo.mineiptv.tv.TelevisionBlockEntity;
-import net.minecraft.client.renderer.LightTexture;
 //? if >=1.21.9 {
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
@@ -29,6 +28,8 @@ import org.jetbrains.annotations.Nullable;
 
 //? if >=1.21.9 {
 public final class TelevisionRenderer implements BlockEntityRenderer<TelevisionBlockEntity, TelevisionRenderer.State> {
+    private static final int FULL_BRIGHT = 0x00F000F0;
+
     public static final class State extends BlockEntityRenderState {
         int width = 1;
         int height = 1;
@@ -93,40 +94,39 @@ public final class TelevisionRenderer implements BlockEntityRenderer<TelevisionB
         final float front = 0.012f;
         final float bottom = inset;
         final float top = height - inset;
-        final int light = LightTexture.FULL_BRIGHT;
 
         switch (facing) {
             case NORTH -> {
                 float z = -front;
-                vertex(pose, c, inset, bottom, z, 0, 1, 0, 0, -1, light);
-                vertex(pose, c, width - inset, bottom, z, 1, 1, 0, 0, -1, light);
-                vertex(pose, c, width - inset, top, z, 1, 0, 0, 0, -1, light);
-                vertex(pose, c, inset, top, z, 0, 0, 0, 0, -1, light);
+                vertex(pose, c, inset, bottom, z, 0, 1, 0, 0, -1, FULL_BRIGHT);
+                vertex(pose, c, width - inset, bottom, z, 1, 1, 0, 0, -1, FULL_BRIGHT);
+                vertex(pose, c, width - inset, top, z, 1, 0, 0, 0, -1, FULL_BRIGHT);
+                vertex(pose, c, inset, top, z, 0, 0, 0, 0, -1, FULL_BRIGHT);
             }
             case SOUTH -> {
                 float z = 1.0f + front;
                 float left = 1.0f - inset;
                 float right = 1.0f - width + inset;
-                vertex(pose, c, left, bottom, z, 0, 1, 0, 0, 1, light);
-                vertex(pose, c, right, bottom, z, 1, 1, 0, 0, 1, light);
-                vertex(pose, c, right, top, z, 1, 0, 0, 0, 1, light);
-                vertex(pose, c, left, top, z, 0, 0, 0, 0, 1, light);
+                vertex(pose, c, left, bottom, z, 0, 1, 0, 0, 1, FULL_BRIGHT);
+                vertex(pose, c, right, bottom, z, 1, 1, 0, 0, 1, FULL_BRIGHT);
+                vertex(pose, c, right, top, z, 1, 0, 0, 0, 1, FULL_BRIGHT);
+                vertex(pose, c, left, top, z, 0, 0, 0, 0, 1, FULL_BRIGHT);
             }
             case EAST -> {
                 float x = 1.0f + front;
-                vertex(pose, c, x, bottom, inset, 0, 1, 1, 0, 0, light);
-                vertex(pose, c, x, bottom, width - inset, 1, 1, 1, 0, 0, light);
-                vertex(pose, c, x, top, width - inset, 1, 0, 1, 0, 0, light);
-                vertex(pose, c, x, top, inset, 0, 0, 1, 0, 0, light);
+                vertex(pose, c, x, bottom, inset, 0, 1, 1, 0, 0, FULL_BRIGHT);
+                vertex(pose, c, x, bottom, width - inset, 1, 1, 1, 0, 0, FULL_BRIGHT);
+                vertex(pose, c, x, top, width - inset, 1, 0, 1, 0, 0, FULL_BRIGHT);
+                vertex(pose, c, x, top, inset, 0, 0, 1, 0, 0, FULL_BRIGHT);
             }
             case WEST -> {
                 float x = -front;
                 float left = 1.0f - inset;
                 float right = 1.0f - width + inset;
-                vertex(pose, c, x, bottom, left, 0, 1, -1, 0, 0, light);
-                vertex(pose, c, x, bottom, right, 1, 1, -1, 0, 0, light);
-                vertex(pose, c, x, top, right, 1, 0, -1, 0, 0, light);
-                vertex(pose, c, x, top, left, 0, 0, -1, 0, 0, light);
+                vertex(pose, c, x, bottom, left, 0, 1, -1, 0, 0, FULL_BRIGHT);
+                vertex(pose, c, x, bottom, right, 1, 1, -1, 0, 0, FULL_BRIGHT);
+                vertex(pose, c, x, top, right, 1, 0, -1, 0, 0, FULL_BRIGHT);
+                vertex(pose, c, x, top, left, 0, 0, -1, 0, 0, FULL_BRIGHT);
             }
             default -> { }
         }
