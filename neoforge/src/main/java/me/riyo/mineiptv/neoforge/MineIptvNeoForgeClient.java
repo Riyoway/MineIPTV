@@ -3,6 +3,7 @@ package me.riyo.mineiptv.neoforge;
 import me.riyo.mineiptv.MineIptv;
 import me.riyo.mineiptv.MineIptvClientCore;
 import me.riyo.mineiptv.TelevisionRenderer;
+import me.riyo.mineiptv.network.MineIptvNetwork;
 import me.riyo.mineiptv.tv.ModTelevisions;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -11,8 +12,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
-/** Client-only hooks. The class subscriber is the NeoForge/game bus. */
 @EventBusSubscriber(modid = MineIptv.MOD_ID, value = Dist.CLIENT)
 public final class MineIptvNeoForgeClient {
     private MineIptvNeoForgeClient() {}
@@ -28,6 +29,7 @@ public final class MineIptvNeoForgeClient {
     }
 
     private static void setup(FMLClientSetupEvent event) {
+        MineIptvNetwork.installClientSender(PacketDistributor::sendToServer);
         MineIptvClientCore.initialize();
     }
 
