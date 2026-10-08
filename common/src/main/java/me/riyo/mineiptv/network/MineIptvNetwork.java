@@ -2,6 +2,7 @@ package me.riyo.mineiptv.network;
 
 import me.riyo.mineiptv.tv.TelevisionBlockEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Objects;
@@ -25,8 +26,11 @@ public final class MineIptvNetwork {
 
         BlockPos pos = payload.pos();
         if (player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) > 64.0) return;
-        if (!player.level().hasChunkAt(pos)) return;
-        if (!(player.level().getBlockEntity(pos) instanceof TelevisionBlockEntity television)) return;
+
+        ServerLevel level = player.serverLevel();
+        // ServerChunkCache#hasChunk is the 1.21.1 non-deprecated loaded-chunk check and does not force a load.
+        if (!level.getChunkSource().hasChunk(pos.getX() >> 4, pos.getZ() >> 4)) return;
+        if (!(level.getBlockEntity(pos) instanceof TelevisionBlockEntity television)) return;
         television.claimIfUnowned(player.getUUID());
         if (!television.canEdit(player.getUUID())) return;
 
