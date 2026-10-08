@@ -1,17 +1,12 @@
 package me.riyo.mineiptv;
 
-//? if >=26.1 {
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.RenderPipelines;
-//?} else {
-/*import net.minecraft.client.gui.GuiGraphics;
-*///?}
+import me.riyo.mineiptv.network.MineIptvNetwork;
+import me.riyo.mineiptv.tv.TelevisionBlockEntity;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import me.riyo.mineiptv.network.MineIptvNetwork;
-import me.riyo.mineiptv.tv.TelevisionBlockEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,7 +89,7 @@ public final class IptvScreen extends Screen {
         Thread.ofVirtual().name("MineIPTV-playlist").start(() -> {
             try {
                 List<Channel> loaded = PlaylistLoader.load(source);
-                this.minecraft.execute(() -> {
+                if (this.minecraft != null) this.minecraft.execute(() -> {
                     channels.clear();
                     channels.addAll(loaded);
                     selected = channels.isEmpty() ? -1 : 0;
@@ -102,7 +97,7 @@ public final class IptvScreen extends Screen {
                     message = "Loaded " + channels.size() + " channel(s).";
                 });
             } catch (Exception e) {
-                this.minecraft.execute(() -> {
+                if (this.minecraft != null) this.minecraft.execute(() -> {
                     loading = false;
                     message = "Load failed: " + safeMessage(e);
                 });
@@ -175,48 +170,11 @@ public final class IptvScreen extends Screen {
         message = "Volume: " + config.volume + "%";
     }
 
-    //? if >=26.1 {
     @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
-        super.extractRenderState(graphics, mouseX, mouseY, delta);
-        player.uploadLatestFrame();
-        drawModern(graphics);
-    }
-
-    private void drawModern(GuiGraphicsExtractor graphics) {
-        int videoX = 12;
-        int videoY = 40;
-        int videoMaxW = Math.max(128, this.width - 204);
-        int videoMaxH = Math.max(72, this.height - 74);
-        float scale = Math.min((float) videoMaxW / FfmpegPlayer.FRAME_WIDTH, (float) videoMaxH / FfmpegPlayer.FRAME_HEIGHT);
-        int videoW = Math.max(1, Math.round(FfmpegPlayer.FRAME_WIDTH * scale));
-        int videoH = Math.max(1, Math.round(FfmpegPlayer.FRAME_HEIGHT * scale));
-        graphics.fill(videoX - 1, videoY - 1, videoX + videoW + 1, videoY + videoH + 1, 0xFF303030);
-        graphics.blit(RenderPipelines.GUI_TEXTURED, player.textureId(), videoX, videoY, 0, 0,
-                videoW, videoH, FfmpegPlayer.FRAME_WIDTH, FfmpegPlayer.FRAME_HEIGHT);
-        graphics.text(this.font, this.title, 12, 14, 0xFFFFFFFF, true);
-        graphics.text(this.font, truncate(message, 80), 12, this.height - 22, 0xFFBFBFBF, false);
-        int controlsX = Math.max(12, this.width - 174);
-        graphics.text(this.font, "Source", controlsX, 28, 0xFFFFFFFF, false);
-        graphics.text(this.font, "FFmpeg", controlsX, 178, 0xFFFFFFFF, false);
-        graphics.text(this.font, "Volume: " + config.volume + "%", controlsX, 218, 0xFFFFFFFF, false);
-        graphics.text(this.font, "Status: " + truncate(player.status(), 24), controlsX, 232, 0xFFBFBFBF, false);
-        drawModernChannel(graphics, controlsX);
-    }
-
-    private void drawModernChannel(GuiGraphicsExtractor graphics, int controlsX) {
-        String channelText = selected >= 0 && selected < channels.size()
-                ? (selected + 1) + "/" + channels.size() + "  " + channels.get(selected).name() : "No channel";
-        graphics.text(this.font, truncate(channelText, 28), controlsX, 250, 0xFFFFFFFF, false);
-        if (selected >= 0 && selected < channels.size() && !channels.get(selected).group().isBlank()) {
-            graphics.text(this.font, truncate(channels.get(selected).group(), 28), controlsX, 264, 0xFF8F8F8F, false);
-        }
-    }
-    //?} else {
-    /*@Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
         super.render(graphics, mouseX, mouseY, delta);
         player.uploadLatestFrame();
+
         int videoX = 12;
         int videoY = 40;
         int videoMaxW = Math.max(128, this.width - 204);
@@ -224,12 +182,13 @@ public final class IptvScreen extends Screen {
         float scale = Math.min((float) videoMaxW / FfmpegPlayer.FRAME_WIDTH, (float) videoMaxH / FfmpegPlayer.FRAME_HEIGHT);
         int videoW = Math.max(1, Math.round(FfmpegPlayer.FRAME_WIDTH * scale));
         int videoH = Math.max(1, Math.round(FfmpegPlayer.FRAME_HEIGHT * scale));
+
         graphics.fill(videoX - 1, videoY - 1, videoX + videoW + 1, videoY + videoH + 1, 0xFF303030);
-        // Older 1.21 GUI blit signatures changed multiple times. The in-world TV renderer
-        // remains the authoritative video surface; keep this preview version-neutral.
-        graphics.drawCenteredString(this.font, "Video output: selected TV", videoX + videoW / 2, videoY + videoH / 2, 0xFFBFBFBF);
+        graphics.blit(player.textureId(), videoX, videoY, 0, 0,
+                videoW, videoH, FfmpegPlayer.FRAME_WIDTH, FfmpegPlayer.FRAME_HEIGHT);
         graphics.drawString(this.font, this.title, 12, 14, 0xFFFFFFFF, true);
         graphics.drawString(this.font, truncate(message, 80), 12, this.height - 22, 0xFFBFBFBF, false);
+
         int controlsX = Math.max(12, this.width - 174);
         graphics.drawString(this.font, "Source", controlsX, 28, 0xFFFFFFFF, false);
         graphics.drawString(this.font, "FFmpeg", controlsX, 178, 0xFFFFFFFF, false);
@@ -238,8 +197,10 @@ public final class IptvScreen extends Screen {
         String channelText = selected >= 0 && selected < channels.size()
                 ? (selected + 1) + "/" + channels.size() + "  " + channels.get(selected).name() : "No channel";
         graphics.drawString(this.font, truncate(channelText, 28), controlsX, 250, 0xFFFFFFFF, false);
+        if (selected >= 0 && selected < channels.size() && !channels.get(selected).group().isBlank()) {
+            graphics.drawString(this.font, truncate(channels.get(selected).group(), 28), controlsX, 264, 0xFF8F8F8F, false);
+        }
     }
-    *///?}
 
     @Override
     public void removed() {

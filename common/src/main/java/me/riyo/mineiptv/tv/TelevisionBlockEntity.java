@@ -9,8 +9,6 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.UUID;
 
@@ -65,23 +63,23 @@ public final class TelevisionBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(ValueOutput output) {
-        output.putString("ChannelName", channelName);
-        output.putString("StreamUrl", streamUrl);
-        output.putBoolean("Playing", playing);
-        output.putLong("Revision", revision);
-        if (owner != null) output.putString("Owner", owner.toString());
-        super.saveAdditional(output);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.putString("ChannelName", channelName);
+        tag.putString("StreamUrl", streamUrl);
+        tag.putBoolean("Playing", playing);
+        tag.putLong("Revision", revision);
+        if (owner != null) tag.putString("Owner", owner.toString());
     }
 
     @Override
-    protected void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        channelName = input.getStringOr("ChannelName", "");
-        streamUrl = input.getStringOr("StreamUrl", "");
-        playing = input.getBooleanOr("Playing", false);
-        revision = input.getLongOr("Revision", 0L);
-        String ownerText = input.getStringOr("Owner", "");
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        channelName = tag.getString("ChannelName");
+        streamUrl = tag.getString("StreamUrl");
+        playing = tag.getBoolean("Playing");
+        revision = tag.getLong("Revision");
+        String ownerText = tag.getString("Owner");
         try {
             owner = ownerText.isBlank() ? null : UUID.fromString(ownerText);
         } catch (IllegalArgumentException ignored) {

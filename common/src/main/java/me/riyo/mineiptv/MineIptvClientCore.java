@@ -14,13 +14,13 @@ public final class MineIptvClientCore {
     public static void openTelevision(BlockPos master) {
         Minecraft client = Minecraft.getInstance();
         TvPlaybackManager.activate(master);
-        client.gui.setScreen(new IptvScreen(Component.literal("MineIPTV TV")));
+        client.setScreen(new IptvScreen(Component.literal("MineIPTV TV")));
     }
 
     public static void openStandalone() {
         Minecraft client = Minecraft.getInstance();
         TvPlaybackManager.activate(null);
-        client.gui.setScreen(new IptvScreen(Component.literal("MineIPTV")));
+        client.setScreen(new IptvScreen(Component.literal("MineIPTV")));
     }
 
     public static void tick() {

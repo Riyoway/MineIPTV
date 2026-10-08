@@ -3,7 +3,7 @@ package me.riyo.mineiptv;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -23,12 +23,8 @@ public final class FfmpegPlayer implements AutoCloseable {
     public static final int FRAME_HEIGHT = 288;
     private static final int FRAME_BYTES = FRAME_WIDTH * FRAME_HEIGHT * 4;
 
-    //? if >=26.1 {
-    private final DynamicTexture texture = new DynamicTexture("MineIPTV stream", FRAME_WIDTH, FRAME_HEIGHT, false);
-    //?} else {
-    /*private final DynamicTexture texture = new DynamicTexture(new NativeImage(FRAME_WIDTH, FRAME_HEIGHT, false));
-    *///?}
-    private final Identifier textureId = MineIptv.id("stream");
+    private final DynamicTexture texture = new DynamicTexture(FRAME_WIDTH, FRAME_HEIGHT, false);
+    private final ResourceLocation textureId = MineIptv.id("stream");
     private final AtomicReference<byte[]> latestFrame = new AtomicReference<>();
     private final AtomicBoolean running = new AtomicBoolean(false);
 
@@ -39,14 +35,10 @@ public final class FfmpegPlayer implements AutoCloseable {
     private volatile int volume = 80;
 
     public FfmpegPlayer() {
-        //? if >=26.1 {
         Minecraft.getInstance().getTextureManager().register(textureId, texture);
-        //?} else {
-        /*Minecraft.getInstance().getTextureManager().register(textureId, texture);
-        *///?}
     }
 
-    public Identifier textureId() {
+    public ResourceLocation textureId() {
         return textureId;
     }
 
@@ -154,11 +146,7 @@ public final class FfmpegPlayer implements AutoCloseable {
                 int g = frame[i + 1] & 0xFF;
                 int b = frame[i + 2] & 0xFF;
                 int a = frame[i + 3] & 0xFF;
-                //? if >=26.1 {
-                image.setPixel(x, y, (a << 24) | (r << 16) | (g << 8) | b);
-                //?} else {
-                /*image.setPixelRGBA(x, y, (a << 24) | (r << 16) | (g << 8) | b);
-                *///?}
+                image.setPixelRGBA(x, y, (a << 24) | (b << 16) | (g << 8) | r);
                 i += 4;
             }
         }
