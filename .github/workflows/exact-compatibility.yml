@@ -1,0 +1,67 @@
+name: exact-compatibility
+
+on:
+  push:
+    branches:
+      - multiversion/all-loaders
+    paths:
+      - 'common/**'
+      - 'fabric/**'
+      - 'forge/**'
+      - 'neoforge/**'
+      - 'compatibility/**'
+      - 'tools/compat/**'
+      - '.github/workflows/exact-compatibility.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  boundary-build:
+    name: ${{ matrix.loader }} / ${{ matrix.mc }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        loader: [fabric, neoforge, forge]
+        mc: ['1.21.1', '1.21.5', '1.21.6', '1.21.9', '1.21.11', '26.1.2', '26.3']
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Prepare exact official workspace
+        id: prepare
+        run: >-
+          python3 tools/compat/prepare_exact_workspace.py
+          --loader '${{ matrix.loader }}'
+          --minecraft '${{ matrix.mc }}'
+          --github-output "$GITHUB_OUTPUT"
+
+      - name: Setup exact runtime JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ steps.prepare.outputs.java }}
+
+      - name: Setup exact Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: ${{ steps.prepare.outputs.gradle }}
+
+      - name: Build exact target
+        run: gradle -p '${{ steps.prepare.outputs.workspace }}' build --stacktrace --no-daemon
+
+      - name: Upload target jar
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exact-${{ matrix.loader }}-${{ matrix.mc }}
+          path: ${{ steps.prepare.outputs.workspace }}/build/libs/*.jar
+          if-no-files-found: error
