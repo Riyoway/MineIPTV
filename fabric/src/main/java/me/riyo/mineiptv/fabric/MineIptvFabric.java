@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public final class MineIptvFabric implements ModInitializer {
@@ -27,7 +28,7 @@ public final class MineIptvFabric implements ModInitializer {
                 new TelevisionPanelBlock(BlockBehaviour.Properties.of().strength(1.8f).noOcclusion()
                         .setId(ResourceKey.create(Registries.BLOCK, panelId))));
         BlockEntityType<TelevisionBlockEntity> be = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, MineIptv.id("television"),
-                BlockEntityType.Builder.of(TelevisionBlockEntity::new, tv).build(null));
+                new BlockEntityType<>(TelevisionBlockEntity::new, Set.of(tv)));
 
         Map<TvSize, Item> items = new EnumMap<>(TvSize.class);
         for (TvSize size : TvSize.values()) {

@@ -11,11 +11,13 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 @Mod(MineIptv.MOD_ID)
@@ -31,7 +33,7 @@ public final class MineIptvNeoForge {
             new TelevisionPanelBlock(BlockBehaviour.Properties.of().strength(1.8f).noOcclusion()
                     .setId(ResourceKey.create(Registries.BLOCK, id))));
     private static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TelevisionBlockEntity>> TV_BE =
-            BLOCK_ENTITIES.register("television", () -> BlockEntityType.Builder.of(TelevisionBlockEntity::new, TV.get()).build(null));
+            BLOCK_ENTITIES.register("television", () -> new BlockEntityType<>(TelevisionBlockEntity::new, Set.of(TV.get())));
     private static final Map<TvSize, DeferredHolder<Item, Item>> TV_ITEMS = new EnumMap<>(TvSize.class);
 
     static {
@@ -43,6 +45,9 @@ public final class MineIptvNeoForge {
 
     public MineIptvNeoForge(IEventBus modBus) {
         BLOCKS.register(modBus); ITEMS.register(modBus); BLOCK_ENTITIES.register(modBus);
+        if (FMLEnvironment.getDist().isClient()) {
+            MineIptvNeoForgeClient.registerModEvents(modBus);
+        }
         Map<TvSize, Supplier<? extends Item>> items = new EnumMap<>(TvSize.class);
         TV_ITEMS.forEach(items::put);
         ModTelevisions.install(TV, PANEL, TV_BE, items);

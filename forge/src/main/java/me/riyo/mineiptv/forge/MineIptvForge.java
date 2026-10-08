@@ -14,6 +14,7 @@ import net.minecraftforge.registries.RegistryObject;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 @Mod(MineIptv.MOD_ID)
@@ -27,7 +28,7 @@ public final class MineIptvForge {
     private static final RegistryObject<Block> PANEL = BLOCKS.register("tv_panel", () ->
             new TelevisionPanelBlock(BlockBehaviour.Properties.of().strength(1.8f).noOcclusion().setId(BLOCKS.key("tv_panel"))));
     private static final RegistryObject<BlockEntityType<?>> TV_BE = BLOCK_ENTITIES.register("television",
-            () -> BlockEntityType.Builder.of(TelevisionBlockEntity::new, TV.get()).build(null));
+            () -> new BlockEntityType<>(TelevisionBlockEntity::new, Set.of(TV.get())));
     private static final Map<TvSize, RegistryObject<Item>> TV_ITEMS = new EnumMap<>(TvSize.class);
 
     static {
