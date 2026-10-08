@@ -40,10 +40,10 @@ jobs:
           rsync -a --delete \
             --exclude='.git/' \
             --exclude='.source/' \
-            --exclude='.github/workflows/sync-source.yml' \
+            --exclude='.github/workflows/' \
             "$src"/ ./
 
-          rm -rf .source .github/workflows/sync-source.yml
+          rm -rf .source
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
