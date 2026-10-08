@@ -12,6 +12,7 @@ repositories {
 }
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.officialMojangMappings()
 }
 jar { from(rootProject.file('LICENSE')) }
 processResources {
