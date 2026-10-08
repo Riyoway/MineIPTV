@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - ".source/**"
+  workflow_dispatch:
 
 permissions:
   contents: write
