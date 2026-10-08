@@ -29,12 +29,9 @@ def evaluate(expr: str, minecraft: str) -> bool:
 
 
 def uncomment_selected(line: str) -> str:
-    # Stonecutter-style inactive branches are wrapped in /* ... */.  When that
-    # branch is selected, only the opening token is present on a source line;
-    # the closing token is attached to the //? marker line and is discarded.
     leading = len(line) - len(line.lstrip())
     body = line[leading:]
-    if body.startswith("/*"):
+    if body.startswith("/*") and not body.startswith("/**"):
         body = body[2:]
     return line[:leading] + body
 
@@ -71,13 +68,17 @@ def preprocess_text(text: str, minecraft: str) -> str:
                 continue
 
         if active:
-            output.append(uncomment_selected(raw))
+            # Only Stonecutter's commented alternate branches need their /*
+            # opener removed. Normal/Javadoc comments outside an else branch
+            # are source and must stay untouched.
+            selected_else = any(bool(frame[2]) for frame in stack)
+            output.append(uncomment_selected(raw) if selected_else else raw)
 
     if stack:
         raise ValueError("Unclosed //? compatibility block")
 
     result = "".join(output)
-    # Mojang renamed ResourceLocation to Identifier in 1.21.11.
+    # Mojang mappings renamed ResourceLocation to Identifier in 1.21.11.
     if version_tuple(minecraft) < version_tuple("1.21.11"):
         result = re.sub(r"\bIdentifier\b", "ResourceLocation", result)
     return result
