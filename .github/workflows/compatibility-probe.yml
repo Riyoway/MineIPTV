@@ -1,0 +1,74 @@
+name: compatibility-probe
+
+on:
+  push:
+    branches:
+      - multiversion/all-loaders
+    paths:
+      - 'common/**'
+      - 'fabric/**'
+      - 'forge/**'
+      - 'neoforge/**'
+      - 'buildSrc/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'compatibility/**'
+      - 'tools/compat/**'
+      - '.github/workflows/compatibility-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compile-probe:
+    name: ${{ matrix.loader }} / ${{ matrix.target.mc }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        loader: [fabric, neoforge, forge]
+        target:
+          - { mc: '1.21.1', java: '21' }
+          - { mc: '1.21.5', java: '21' }
+          - { mc: '1.21.6', java: '21' }
+          - { mc: '1.21.9', java: '21' }
+          - { mc: '1.21.11', java: '21' }
+          - { mc: '26.1.2', java: '25' }
+          - { mc: '26.3', java: '25' }
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.target.java }}
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.7.1'
+
+      - name: Retarget disposable checkout
+        run: python3 tools/compat/prepare_probe.py --minecraft '${{ matrix.target.mc }}' --loader '${{ matrix.loader }}'
+
+      - name: Resolve versioned source branches
+        run: python3 tools/compat/preprocess_sources.py --minecraft '${{ matrix.target.mc }}' common/src/main/java '${{ matrix.loader }}/src/main/java'
+
+      - name: Compile target
+        run: gradle ':${{ matrix.loader }}:build' --stacktrace --no-daemon
+
+      - name: Upload built jars
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-probe-${{ matrix.loader }}-${{ matrix.target.mc }}
+          path: ${{ matrix.loader }}/build/libs/*.jar
+          if-no-files-found: error
